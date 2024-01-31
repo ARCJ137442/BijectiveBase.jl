@@ -3,7 +3,7 @@ using Test
 
 @testset "main" begin
 #= %only-compiled
-module BijectiveBase
+module BijectiveNumeration
 %only-compiled =#
 
 # %ignore-cell
