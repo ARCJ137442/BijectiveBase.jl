@@ -15,10 +15,9 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          # Version 1.7 and below cause of failure: Global variables cannot attach type annotations
-          - "1.0"
-          - "1.1"
-          - "1.2"
+          # Version 1.2 and below cause of failure (on runtests.jl):
+          # MethodError: no method matching (::getfield(Main, Symbol("##122#test#29")))(::Int64, ::Int64)
+          # [1] (::getfield(Main, Symbol("##122#test#29")))(::Int64) at /home/runner/work/BijectiveBase.jl/BijectiveBase.jl/test/runtests.jl:172
           - "1.3"
           - "1" # Leave this line unchanged. '1' will automatically expand to the latest stable 1.x release of Julia.
           - "nightly"
