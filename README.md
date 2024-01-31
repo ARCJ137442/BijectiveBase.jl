@@ -1,11 +1,19 @@
-<!-- ⚠️该文件由 `BijectiveBase.ipynb` 自动生成于 2024-01-31T17:34:09.848，无需手动修改 -->
+<!-- ⚠️该文件由 `BijectiveBase.ipynb` 自动生成于 2024-01-31T17:47:44.419，无需手动修改 -->
 # BijectiveBase.jl - 对「双射基数n进制」的解析转换支持
+
+[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-%23FE5196?logo=conventionalcommits&logoColor=white)](https://conventionalcommits.org)
+[![Static Badge](https://img.shields.io/badge/julia-package?logo=julia&label=1.4%2B)](https://julialang.org/)
+
+[![CI status](https://github.com/ARCJ137442/BijectiveBase.jl/workflows/CI/badge.svg)](https://github.com/ARCJ137442/BijectiveBase.jl/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/ARCJ137442/BijectiveBase.jl/graph/badge.svg?token=PCQHEU15L0)](https://codecov.io/gh/ARCJ137442/BijectiveBase.jl)
+
+该项目使用[语义化版本 2.0.0](https://semver.org/)进行版本号管理。
 
 ## 概述
 
-🎯核心功能：对「双射N进制数值」进行解析、生成
+🎯核心功能：生成、解析「双射n进制数值」
 
-- 与日常所谓「n进制」的区别：**没有表特殊地位的「0」位值**
+- 与日常「n进制数值」的区别：**没有表特殊地位的「0」位值**
   - 这意味着「A」与「AA」在任何n下语义都不相同
 - 有「数组」「字符串」两种形式可选
 

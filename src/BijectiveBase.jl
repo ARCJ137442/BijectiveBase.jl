@@ -8,19 +8,28 @@
 # # BijectiveBase.jl - 对「双射基数n进制」的解析转换支持
 
 # %% [2] markdown
-# ## 概述
+# [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-%23FE5196?logo=conventionalcommits&logoColor=white)](https://conventionalcommits.org)
+# [![Static Badge](https://img.shields.io/badge/julia-package?logo=julia&label=1.4%2B)](https://julialang.org/)
+# 
+# [![CI status](https://github.com/ARCJ137442/BijectiveBase.jl/workflows/CI/badge.svg)](https://github.com/ARCJ137442/BijectiveBase.jl/actions/workflows/ci.yml)
+# [![codecov](https://codecov.io/gh/ARCJ137442/BijectiveBase.jl/graph/badge.svg?token=PCQHEU15L0)](https://codecov.io/gh/ARCJ137442/BijectiveBase.jl)
+# 
+# 该项目使用[语义化版本 2.0.0](https://semver.org/)进行版本号管理。
 
 # %% [3] markdown
-# 🎯核心功能：对「双射N进制数值」进行解析、生成
+# ## 概述
+
+# %% [4] markdown
+# 🎯核心功能：生成、解析「双射n进制数值」
 # 
-# - 与日常所谓「n进制」的区别：**没有表特殊地位的「0」位值**
+# - 与日常「n进制数值」的区别：**没有表特殊地位的「0」位值**
 #     - 这意味着「A」与「AA」在任何n下语义都不相同
 # - 有「数组」「字符串」两种形式可选
 
-# %% [4] markdown
+# %% [5] markdown
 # ## 对照表
 
-# %% [5] markdown
+# %% [6] markdown
 # 部分二进制数的对应关系表如下：
 # 
 # | 原 | BIN | Bijective BIN | 权值显示 |
@@ -45,10 +54,10 @@
 # 
 # ^其中**空白单元格**表示「空字符串」
 
-# %% [6] markdown
+# %% [7] markdown
 # ## 使用
 
-# %% [7] markdown
+# %% [8] markdown
 # 该Julia包导出了三个函数，分别为
 # 
 # - `length_bijective`：计算数值在「双射进位制」下的位数
@@ -65,7 +74,7 @@
 #     - `bijective_to_num(s::AbstractString, chars::AbstractString, I::Type{<:Integer}=Int) -> I`：将双射进位制的符号串`s`通过指定的「进制字符集」`chars`转换成类型为I的数值
 #         - 参数`I`：用于兼容大整数`BigInt`，默认为`Int`
 
-# %% [8] markdown
+# %% [9] markdown
 # 对函数参数Curly化的支持：
 # 
 # - `num_to_bijective`
@@ -83,27 +92,27 @@
 #         - 即 `bijective_to_num(chars, I)(s)` 等价于 `bijective_to_num(s, chars, I)`
 #         - 可用于管道和广播操作：`s |> bijective_to_num(chars, I)`、`bijective_to_num(chars, I).([p, q, r])`
 
-# %% [9] markdown
+# %% [10] markdown
 # ## 参考
 
-# %% [10] markdown
+# %% [11] markdown
 # - 🔗[双射记数系统 - 维基百科](https://zh.wikipedia.org/wiki/%E9%9B%99%E5%B0%84%E8%A8%98%E6%95%B8)
 # - 🔗[Bijective numeration - Wikipedia](https://en.wikipedia.org/wiki/Bijective_numeration)
 
-# %% [11] markdown
+# %% [12] markdown
 # <!-- README-end -->
 # <!-- TEST-begin -->
 # ## 库代码
 
 
-# %% [13] code
+# %% [14] code
 module BijectiveBase
 
 
-# %% [14] markdown
+# %% [15] markdown
 # ### 代码
 
-# %% [15] markdown
+# %% [16] markdown
 # 📌教训：对此类「数值找规律」的问题，一定要善用**🛠️表格对照法**
 # 
 # - ❌闷头写算法：仅凭少量样例编写算法，容易导致过拟合（面对新例出现异常）
@@ -131,10 +140,10 @@ module BijectiveBase
 
 
 
-# %% [18] markdown
+# %% [19] markdown
 # 计算长度
 
-# %% [19] code
+# %% [20] code
 # ! Jupyter允许在单元格中导出符号（而无视模块上下文）
 export length_bijective
 
@@ -145,7 +154,7 @@ export length_bijective
 - @param N 进制基数
 - @returns 所转换成的「双射N进位数」的基数
 """
-function length_bijective(x::I, N::U) where {I<:Integer,U<:Integer}
+function length_bijective(x::I, N::U) where {I <: Integer, U <: Integer}
     local n::I = 0
     local y::I = x
     while y >= N^n
@@ -164,10 +173,10 @@ end
 length_bijective(x, chars::AbstractString) = length_bijective(x, length(chars))
 
 
-# %% [20] markdown
+# %% [21] markdown
 # 数组版本
 
-# %% [21] code
+# %% [22] code
 # ! Jupyter允许在单元格中导出符号（而无视模块上下文）
 export num_to_bijective, bijective_to_num
 
@@ -188,7 +197,7 @@ export num_to_bijective, bijective_to_num
         - 遵循字面呈现规则，如「双射三进制」下`121`被直译为`[1, 2, 1]`
         - 📌若后续需要扩展，可能需要倒序
 """
-function num_to_bijective(x::I, N::Integer, f::Function=identity, T::Type=Any) where {I<:Integer}
+function num_to_bijective(x::I, N::Integer, f::Function=identity, T::Type=Any) where {I <: Integer}
     # ! 通用，无需考虑x=0的情况
 
     # 减去1111，并得到长度 | 将「1~N」问题 转换为 「0~(N-1)」问题
@@ -226,10 +235,10 @@ num_to_bijective(N::Integer, f::Function=identity, T::Type=Any) = x -> num_to_bi
 - @param [I] 转换结果（原数）的类型
     - 用于兼容大整数
 """
-function bijective_to_num(s::Vector{T}, N::U, f⁻¹::Function=identity) where {T,U<:Integer}
+function bijective_to_num(s::Vector{T}, N::U, f⁻¹::Function=identity) where {T, U <: Integer}
     # 初始化总和
     local result::U = zero(U)
-
+    
     # ! 通用，无需考虑s为空的情况
     local l = length(s)
 
@@ -247,10 +256,10 @@ bijective_to_num(s::Vector, N::Integer, f⁻¹::Function, I::Type{<:Integer}) = 
 bijective_to_num(N::Integer, f⁻¹::Function=identity, I::Type{<:Integer}=Int) = s -> bijective_to_num(s, N, f⁻¹, I)
 
 
-# %% [22] markdown
+# %% [23] markdown
 # 字符串版本
 
-# %% [23] code
+# %% [24] code
 # * 一些工具函数
 
 "【内部】获取指定*位置*的字符（无视Unicode多字节限制）"
@@ -287,7 +296,7 @@ first_index(c::AbstractChar, s::AbstractString) = first_index(s, c)
         - 遵循字面呈现规则，如「双射三进制」下`101`即字符串"101"
     - 📌若后续需要扩展，可能需要倒序读取
 """
-function num_to_bijective(x::I, chars::AbstractString) where {I<:Integer}
+function num_to_bijective(x::I, chars::AbstractString) where {I <: Integer}
     # ! 通用，无需考虑x=0的情况
 
     # 通过字串长度获得基数N
@@ -306,7 +315,7 @@ function num_to_bijective(x::I, chars::AbstractString) where {I<:Integer}
     local c::I
     while n > 0
         y, c = divrem(y, N) # 除N取余
-        s[n] = char_at(chars, c + 1) # 计入
+        s[n] = char_at(chars, c+1) # 计入
         n -= 1 # 自减
     end
 
@@ -319,7 +328,7 @@ num_to_bijective(x::Integer, chars::AbstractString, I::Type{<:Integer}) = num_to
 
 "参数Curly化支持"
 num_to_bijective(chars::AbstractString, args...) = x -> num_to_bijective(x, chars, args...)
-
+     
 """
     bijective_to_num(s::AbstractString, chars::AbstractString)
 
@@ -330,13 +339,13 @@ num_to_bijective(chars::AbstractString, args...) = x -> num_to_bijective(x, char
 - @param [I] 原数类型（可选约束）
 - @return 原数
 """
-function bijective_to_num(s::AbstractString, chars::AbstractString, ::Type{I}) where {I<:Integer}
+function bijective_to_num(s::AbstractString, chars::AbstractString, ::Type{I}) where {I <: Integer}
     local result::I = zero(I)
     # 正常求和 | # ! 通用方法，因l=0不执行`for`故无需提前判断
     local N::I = length(chars)
     local l = length(s)
     for i in 0:(l-1)
-        result += first_index(chars, char_at(s, l - i)) * N^i
+        result += first_index(chars, char_at(s, l-i)) * N^i
     end
     return result
 end
@@ -349,7 +358,7 @@ bijective_to_num(chars::AbstractString, I::Type{<:Integer}=Int) = s -> bijective
 
 
 
-# %% [25] code
+# %% [26] code
 end # module
 
 
