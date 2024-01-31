@@ -1,0 +1,13 @@
+name = "BijectiveBase"
+uuid = "16a53b73-2365-4735-845c-cd5ecdfab728"
+authors = ["ARCJ137442 <61109168+ARCJ137442@users.noreply.github.com>"]
+version = "0.1.0"
+
+[compat]
+julia = "1.8.0"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
