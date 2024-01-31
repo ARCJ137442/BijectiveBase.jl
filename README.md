@@ -1,4 +1,4 @@
-<!-- ⚠️该文件由 `BijectiveBase.ipynb` 自动生成于 2024-01-31T15:34:08.485，无需手动修改 -->
+<!-- ⚠️该文件由 `BijectiveBase.ipynb` 自动生成于 2024-01-31T17:34:09.848，无需手动修改 -->
 # BijectiveBase.jl - 对「双射基数n进制」的解析转换支持
 
 ## 概述
@@ -40,14 +40,35 @@
 该Julia包导出了三个函数，分别为
 
 - `length_bijective`：计算数值在「双射进位制」下的位数
-  - `length_bijective(x::Integer, N::Integer) -> Integer`：计算数值$x$在「双射$N$进位制」下的位数
-  - `length_bijective(x::Integer, chars::AbstractString) -> Integer`：计算数值$x$在以`chars`为$N$进制字符集的「双射$N$进位制」下的位数
+  - `length_bijective(x::Integer, N::Integer) -> Integer`：计算数值`x`在「双射`N`进位制」下的位数
+  - `length_bijective(x::Integer, chars::AbstractString) -> Integer`：计算数值`x`在以`chars`为`N`进制字符集的「双射`N`进位制」下的位数
 - `num_to_bijective`：将数值转换为双射进位制的符号串
-  - `num_to_bijective(x::Integer, N::Integer, f::Function) -> Vector`：将数值$x$通过「符号→位值」的映射$f$转换为双射$N$进位制的符号串
-  - `num_to_bijective(x::Integer, chars::AbstractString) -> String`：将数值$x$通过指定的「进制字符集」`chars`转换为双射进位制的字符串
+  - `num_to_bijective(x::Integer, N::Integer, f::Function=identity, T::Type=Any) -> Vector{T}`：将数值`x`通过「符号→位值」的映射`f`转换为双射`N`进位制的符号串
+    - `f`默认为恒等函数`identity`，即使用**1~N**作为符号值
+  - `num_to_bijective(x::Integer, chars::AbstractString) -> String`：将数值`x`通过指定的「进制字符集」`chars`转换为双射进位制的字符串
 - `bijective_to_num`：将双射进位制的数值转换为数值
-  - `bijective_to_num(s::Vector, N::Integer, f⁻¹::Function) -> Integer`：将双射$N$进位制的符号串`s`通过「符号→位值」的逆映射$f^{-1}$转换为数值
-  - `bijective_to_num(s::AbstractString, chars::AbstractString) -> Integer`：将双射进位制的符号串`s`通过指定的「进制字符集」`chars`转换为数值
+  - `bijective_to_num(s::Vector, N::Integer, f⁻¹::Function=identity, I::Type{<:Integer}=Int) -> I`：将双射`N`进位制的符号串`s`通过「符号→位值」的逆映射`f⁻¹`转换成类型为I的数值
+    - `f`默认为恒等函数`identity`，即使用**1~N**作为符号值
+    - 参数`I`：用于兼容大整数`BigInt`，默认为`Int`
+  - `bijective_to_num(s::AbstractString, chars::AbstractString, I::Type{<:Integer}=Int) -> I`：将双射进位制的符号串`s`通过指定的「进制字符集」`chars`转换成类型为I的数值
+    - 参数`I`：用于兼容大整数`BigInt`，默认为`Int`
+
+对函数参数Curly化的支持：
+
+- `num_to_bijective`
+  - `num_to_bijective(N::Integer, f::Function=identity, T::Type=Any) -> Function`
+    - 即 `num_to_bijective(N, f, T)(x)` 等价于 `num_to_bijective(x, N, f, T)`
+    - 可用于管道和广播操作：`x |> num_to_bijective(N, f, T)`、`num_to_bijective(N, f, T).([x, y, z])`
+  - `num_to_bijective(chars::AbstractString, args...) -> Function`
+    - 即 `num_to_bijective(chars, args...)(x)` 等价于 `num_to_bijective(x, chars, args...)`
+    - 可用于管道和广播操作：`x |> num_to_bijective(chars, args...)`、`num_to_bijective(chars, args...).([x, y, z])`
+- `bijective_to_num`
+  - `bijective_to_num(N::Integer, f⁻¹::Function=identity, I::Type{<:Integer}=Int) -> Function`
+    - 即 `bijective_to_num(N, f⁻¹, I)(s)` 等价于 `bijective_to_num(s, N, f⁻¹, I)`
+    - 可用于管道和广播操作：`s |> bijective_to_num(N, f⁻¹, I)`、`bijective_to_num(N, f⁻¹, I).([p, q, r])`
+  - `bijective_to_num(chars::AbstractString, I::Type{<:Integer}=Int) -> Function`
+    - 即 `bijective_to_num(chars, I)(s)` 等价于 `bijective_to_num(s, chars, I)`
+    - 可用于管道和广播操作：`s |> bijective_to_num(chars, I)`、`bijective_to_num(chars, I).([p, q, r])`
 
 ## 参考
 

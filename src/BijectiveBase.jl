@@ -52,36 +52,58 @@
 # 该Julia包导出了三个函数，分别为
 # 
 # - `length_bijective`：计算数值在「双射进位制」下的位数
-#     - `length_bijective(x::Integer, N::Integer) -> Integer`：计算数值$x$在「双射$N$进位制」下的位数
-#     - `length_bijective(x::Integer, chars::AbstractString) -> Integer`：计算数值$x$在以`chars`为$N$进制字符集的「双射$N$进位制」下的位数
+#     - `length_bijective(x::Integer, N::Integer) -> Integer`：计算数值`x`在「双射`N`进位制」下的位数
+#     - `length_bijective(x::Integer, chars::AbstractString) -> Integer`：计算数值`x`在以`chars`为`N`进制字符集的「双射`N`进位制」下的位数
 # - `num_to_bijective`：将数值转换为双射进位制的符号串
-#     - `num_to_bijective(x::Integer, N::Integer, f::Function) -> Vector`：将数值$x$通过「符号→位值」的映射$f$转换为双射$N$进位制的符号串
-#     - `num_to_bijective(x::Integer, chars::AbstractString) -> String`：将数值$x$通过指定的「进制字符集」`chars`转换为双射进位制的字符串
+#     - `num_to_bijective(x::Integer, N::Integer, f::Function=identity, T::Type=Any) -> Vector{T}`：将数值`x`通过「符号→位值」的映射`f`转换为双射`N`进位制的符号串
+#         - `f`默认为恒等函数`identity`，即使用**1~N**作为符号值
+#     - `num_to_bijective(x::Integer, chars::AbstractString) -> String`：将数值`x`通过指定的「进制字符集」`chars`转换为双射进位制的字符串
 # - `bijective_to_num`：将双射进位制的数值转换为数值
-#     - `bijective_to_num(s::Vector, N::Integer, f⁻¹::Function) -> Integer`：将双射$N$进位制的符号串`s`通过「符号→位值」的逆映射$f^{-1}$转换为数值
-#     - `bijective_to_num(s::AbstractString, chars::AbstractString) -> Integer`：将双射进位制的符号串`s`通过指定的「进制字符集」`chars`转换为数值
+#     - `bijective_to_num(s::Vector, N::Integer, f⁻¹::Function=identity, I::Type{<:Integer}=Int) -> I`：将双射`N`进位制的符号串`s`通过「符号→位值」的逆映射`f⁻¹`转换成类型为I的数值
+#         - `f`默认为恒等函数`identity`，即使用**1~N**作为符号值
+#         - 参数`I`：用于兼容大整数`BigInt`，默认为`Int`
+#     - `bijective_to_num(s::AbstractString, chars::AbstractString, I::Type{<:Integer}=Int) -> I`：将双射进位制的符号串`s`通过指定的「进制字符集」`chars`转换成类型为I的数值
+#         - 参数`I`：用于兼容大整数`BigInt`，默认为`Int`
 
 # %% [8] markdown
-# ## 参考
+# 对函数参数Curly化的支持：
+# 
+# - `num_to_bijective`
+#     - `num_to_bijective(N::Integer, f::Function=identity, T::Type=Any) -> Function`
+#         - 即 `num_to_bijective(N, f, T)(x)` 等价于 `num_to_bijective(x, N, f, T)`
+#         - 可用于管道和广播操作：`x |> num_to_bijective(N, f, T)`、`num_to_bijective(N, f, T).([x, y, z])`
+#     - `num_to_bijective(chars::AbstractString, args...) -> Function`
+#         - 即 `num_to_bijective(chars, args...)(x)` 等价于 `num_to_bijective(x, chars, args...)`
+#         - 可用于管道和广播操作：`x |> num_to_bijective(chars, args...)`、`num_to_bijective(chars, args...).([x, y, z])`
+# - `bijective_to_num`
+#     - `bijective_to_num(N::Integer, f⁻¹::Function=identity, I::Type{<:Integer}=Int) -> Function`
+#         - 即 `bijective_to_num(N, f⁻¹, I)(s)` 等价于 `bijective_to_num(s, N, f⁻¹, I)`
+#         - 可用于管道和广播操作：`s |> bijective_to_num(N, f⁻¹, I)`、`bijective_to_num(N, f⁻¹, I).([p, q, r])`
+#     - `bijective_to_num(chars::AbstractString, I::Type{<:Integer}=Int) -> Function`
+#         - 即 `bijective_to_num(chars, I)(s)` 等价于 `bijective_to_num(s, chars, I)`
+#         - 可用于管道和广播操作：`s |> bijective_to_num(chars, I)`、`bijective_to_num(chars, I).([p, q, r])`
 
 # %% [9] markdown
+# ## 参考
+
+# %% [10] markdown
 # - 🔗[双射记数系统 - 维基百科](https://zh.wikipedia.org/wiki/%E9%9B%99%E5%B0%84%E8%A8%98%E6%95%B8)
 # - 🔗[Bijective numeration - Wikipedia](https://en.wikipedia.org/wiki/Bijective_numeration)
 
-# %% [10] markdown
+# %% [11] markdown
 # <!-- README-end -->
 # <!-- TEST-begin -->
 # ## 库代码
 
 
-# %% [12] code
+# %% [13] code
 module BijectiveBase
 
 
-# %% [13] markdown
+# %% [14] markdown
 # ### 代码
 
-# %% [14] markdown
+# %% [15] markdown
 # 📌教训：对此类「数值找规律」的问题，一定要善用**🛠️表格对照法**
 # 
 # - ❌闷头写算法：仅凭少量样例编写算法，容易导致过拟合（面对新例出现异常）
@@ -109,10 +131,10 @@ module BijectiveBase
 
 
 
-# %% [17] markdown
+# %% [18] markdown
 # 计算长度
 
-# %% [18] code
+# %% [19] code
 # ! Jupyter允许在单元格中导出符号（而无视模块上下文）
 export length_bijective
 
@@ -123,7 +145,7 @@ export length_bijective
 - @param N 进制基数
 - @returns 所转换成的「双射N进位数」的基数
 """
-function length_bijective(x::I, N::U) where {I <: Integer, U <: Integer}
+function length_bijective(x::I, N::U) where {I<:Integer,U<:Integer}
     local n::I = 0
     local y::I = x
     while y >= N^n
@@ -142,21 +164,31 @@ end
 length_bijective(x, chars::AbstractString) = length_bijective(x, length(chars))
 
 
-# %% [19] markdown
+# %% [20] markdown
 # 数组版本
 
-# %% [20] code
+# %% [21] code
 # ! Jupyter允许在单元格中导出符号（而无视模块上下文）
 export num_to_bijective, bijective_to_num
 
 """
     num_to_bijective(x::I, N::U, f::Function, T::Type=Any) -> Vector{T} where {I <: Integer, U <: Integer}
+
 原数→双射进位制数（数组版本）
-- ⚠️其中返回的数组对「索引」而言是「从高到底数」的
-    - 遵循字面呈现规则，如「双射三进制」下`101`被直译为`[1, 0, 1]`
-    - 📌若后续需要扩展，可能需要倒序
+- @param x 要转换的原数
+- @param N 进制基数
+    - 类型提升主要发生在`x`上，兼容大整数只需传入`x::BigInt`即可
+- @param f 「权值→符号」的映射函数
+    - @default `f`为`identity`，即默认为「1~N」的数值串
+- @param T 「双射N进位数」的符号类型
+    - @default 一般情况下，`T`为`Any`
+    - ⚠️除非指定类型`T`，否则不对数组元素类型进行约束
+- @return 「双射N进位数」符号串（数组）
+    - ⚠️其对「索引」而言是「从高到底数」的
+        - 遵循字面呈现规则，如「双射三进制」下`121`被直译为`[1, 2, 1]`
+        - 📌若后续需要扩展，可能需要倒序
 """
-function num_to_bijective(x::I, N::U, f::Function, T::Type=Any) where {I <: Integer, U <: Integer}
+function num_to_bijective(x::I, N::Integer, f::Function=identity, T::Type=Any) where {I<:Integer}
     # ! 通用，无需考虑x=0的情况
 
     # 减去1111，并得到长度 | 将「1~N」问题 转换为 「0~(N-1)」问题
@@ -179,25 +211,46 @@ function num_to_bijective(x::I, N::U, f::Function, T::Type=Any) where {I <: Inte
     # 返回最终结果
     return s
 end
-     
+
+"参数Curly化支持"
+num_to_bijective(N::Integer, f::Function=identity, T::Type=Any) = x -> num_to_bijective(x, N, f, T)
+
 """
     bijective_to_num(s::Vector{T}, N::U, f⁻¹::Function) -> Integer
+
 双射进制数→原数（数组版本）
+- @param s 「双射N进位数」符号串（数组）
+- @param N 进制基数
+- @param f⁻¹ 「符号→权值」的映射函数
+    - @default `f⁻¹`为`identity`，即默认为「1~N」的数值串
+- @param [I] 转换结果（原数）的类型
+    - 用于兼容大整数
 """
-function bijective_to_num(s::Vector{T}, N::U, f⁻¹::Function) where {T, U <: Integer}
-    isempty(s) && return 0
-    local l::Integer = length(s)
-    return sum(
-        f⁻¹(s[l-i]) * N^i
-        for i in 0:(l-1)
-    )
+function bijective_to_num(s::Vector{T}, N::U, f⁻¹::Function=identity) where {T,U<:Integer}
+    # 初始化总和
+    local result::U = zero(U)
+
+    # ! 通用，无需考虑s为空的情况
+    local l = length(s)
+
+    # 逐位求和
+    for i in 0:(l-1)
+        result += f⁻¹(s[l-i]) * N^i
+    end
+    return result
 end
 
+"类型默认参数"
+bijective_to_num(s::Vector, N::Integer, f⁻¹::Function, I::Type{<:Integer}) = bijective_to_num(s, I(N), f⁻¹)
 
-# %% [21] markdown
+"参数Curly化支持"
+bijective_to_num(N::Integer, f⁻¹::Function=identity, I::Type{<:Integer}=Int) = s -> bijective_to_num(s, N, f⁻¹, I)
+
+
+# %% [22] markdown
 # 字符串版本
 
-# %% [22] code
+# %% [23] code
 # * 一些工具函数
 
 "【内部】获取指定*位置*的字符（无视Unicode多字节限制）"
@@ -223,17 +276,22 @@ first_index(c::AbstractChar, s::AbstractString) = first_index(s, c)
 
 """
     num_to_bijective(x::I, chars::AbstractString) where {I <: Integer} -> Integer
+
 原数→双射进位制数（字符串版本）
-- 自动以「字符集大小」作为基数
-- ⚠️其中返回的数组对「索引」而言是「从高到底数」的
-    - 遵循字面呈现规则，如「双射三进制」下`101`即字符串"101"
+- @param x 原数
+- @param chars 双射进制数字符集
+    - 自动以「字符集大小」作为基数N
+- @param [I] 原数类型（可选约束）
+- @return 双射进制数符号串（字符串）
+    - ⚠️其中返回的数组对「索引」而言是「从高到底数」的
+        - 遵循字面呈现规则，如「双射三进制」下`101`即字符串"101"
     - 📌若后续需要扩展，可能需要倒序读取
 """
-function num_to_bijective(x::I, chars::AbstractString) where {I <: Integer}
+function num_to_bijective(x::I, chars::AbstractString) where {I<:Integer}
     # ! 通用，无需考虑x=0的情况
 
     # 通过字串长度获得基数N
-    local N = length(chars)
+    local N::I = length(chars)
 
     # 减去1111，并得到长度 | 将「1~N」问题 转换为 「0~(N-1)」问题
     local n::I = 0
@@ -248,32 +306,50 @@ function num_to_bijective(x::I, chars::AbstractString) where {I <: Integer}
     local c::I
     while n > 0
         y, c = divrem(y, N) # 除N取余
-        s[n] = char_at(chars, c+1) # 计入
+        s[n] = char_at(chars, c + 1) # 计入
         n -= 1 # 自减
     end
 
     # 返回最终结果
     return join(s)
 end
-     
+
+"默认类型参数"
+num_to_bijective(x::Integer, chars::AbstractString, I::Type{<:Integer}) = num_to_bijective(I(x), chars)
+
+"参数Curly化支持"
+num_to_bijective(chars::AbstractString, args...) = x -> num_to_bijective(x, chars, args...)
+
 """
     bijective_to_num(s::AbstractString, chars::AbstractString)
+
 双射进制数→原数（字符串版本）
-- 自动以「字符集大小」作为基数
+- @param s 双射进制数符号串（字符串）
+- @param chars 双射进制数字符集
+    - 自动以「字符集大小」作为基数N
+- @param [I] 原数类型（可选约束）
+- @return 原数
 """
-function bijective_to_num(s::AbstractString, chars::AbstractString)
-    isempty(s) && return 0
-    local N = length(chars)
+function bijective_to_num(s::AbstractString, chars::AbstractString, ::Type{I}) where {I<:Integer}
+    local result::I = zero(I)
+    # 正常求和 | # ! 通用方法，因l=0不执行`for`故无需提前判断
+    local N::I = length(chars)
     local l = length(s)
-    return sum(
-        first_index(chars, char_at(s, l-i)) * N^i
-        for i in 0:(l-1)
-    )
+    for i in 0:(l-1)
+        result += first_index(chars, char_at(s, l - i)) * N^i
+    end
+    return result
 end
 
+"默认类型参数"
+bijective_to_num(s::AbstractString, chars::AbstractString) = bijective_to_num(s, chars, Int) # 默认为Int类型
+
+"参数Curly化支持"
+bijective_to_num(chars::AbstractString, I::Type{<:Integer}=Int) = s -> bijective_to_num(s, chars, I)
 
 
-# %% [24] code
+
+# %% [25] code
 end # module
 
 

@@ -85,12 +85,22 @@ end
 
 """
     num_to_bijective(x::I, N::U, f::Function, T::Type=Any) -> Vector{T} where {I <: Integer, U <: Integer}
+
 原数→双射进位制数（数组版本）
-- ⚠️其中返回的数组对「索引」而言是「从高到底数」的
-    - 遵循字面呈现规则，如「双射三进制」下`101`被直译为`[1, 0, 1]`
-    - 📌若后续需要扩展，可能需要倒序
+- @param x 要转换的原数
+- @param N 进制基数
+    - 类型提升主要发生在`x`上，兼容大整数只需传入`x::BigInt`即可
+- @param f 「权值→符号」的映射函数
+    - @default `f`为`identity`，即默认为「1~N」的数值串
+- @param T 「双射N进位数」的符号类型
+    - @default 一般情况下，`T`为`Any`
+    - ⚠️除非指定类型`T`，否则不对数组元素类型进行约束
+- @return 「双射N进位数」符号串（数组）
+    - ⚠️其对「索引」而言是「从高到底数」的
+        - 遵循字面呈现规则，如「双射三进制」下`121`被直译为`[1, 2, 1]`
+        - 📌若后续需要扩展，可能需要倒序
 """
-function num_to_bijective(x::I, N::U, f::Function, T::Type=Any) where {I <: Integer, U <: Integer}
+function num_to_bijective(x::I, N::Integer, f::Function=identity, T::Type=Any) where {I <: Integer}
     # ! 通用，无需考虑x=0的情况
 
     # 减去1111，并得到长度 | 将「1~N」问题 转换为 「0~(N-1)」问题
@@ -113,19 +123,40 @@ function num_to_bijective(x::I, N::U, f::Function, T::Type=Any) where {I <: Inte
     # 返回最终结果
     return s
 end
-     
+
+"参数Curly化支持"
+num_to_bijective(N::Integer, f::Function=identity, T::Type=Any) = x -> num_to_bijective(x, N, f, T)
+
 """
     bijective_to_num(s::Vector{T}, N::U, f⁻¹::Function) -> Integer
+
 双射进制数→原数（数组版本）
+- @param s 「双射N进位数」符号串（数组）
+- @param N 进制基数
+- @param f⁻¹ 「符号→权值」的映射函数
+    - @default `f⁻¹`为`identity`，即默认为「1~N」的数值串
+- @param [I] 转换结果（原数）的类型
+    - 用于兼容大整数
 """
-function bijective_to_num(s::Vector{T}, N::U, f⁻¹::Function) where {T, U <: Integer}
-    isempty(s) && return 0
-    local l::Integer = length(s)
-    return sum(
-        f⁻¹(s[l-i]) * N^i
-        for i in 0:(l-1)
-    )
+function bijective_to_num(s::Vector{T}, N::U, f⁻¹::Function=identity) where {T, U <: Integer}
+    # 初始化总和
+    local result::U = zero(U)
+    
+    # ! 通用，无需考虑s为空的情况
+    local l = length(s)
+
+    # 逐位求和
+    for i in 0:(l-1)
+        result += f⁻¹(s[l-i]) * N^i
+    end
+    return result
 end
+
+"类型默认参数"
+bijective_to_num(s::Vector, N::Integer, f⁻¹::Function, I::Type{<:Integer}) = bijective_to_num(s, I(N), f⁻¹)
+
+"参数Curly化支持"
+bijective_to_num(N::Integer, f⁻¹::Function=identity, I::Type{<:Integer}=Int) = s -> bijective_to_num(s, N, f⁻¹, I)
 # %ignore-below # * 测试代码
 
 # 尝试使用数据框
@@ -137,7 +168,7 @@ catch
     false
 end
 # 正式开始
-let test(N = 2, NUM = 16) = begin
+df = let test(N = 2, NUM = 16) = begin
     f(x) = x#-1
     f⁻¹(x) = x#+1
     parseInt(x) = isempty(x) ? 0 : parse(Int, x)
@@ -150,7 +181,9 @@ let test(N = 2, NUM = 16) = begin
     range = 1:NUM
     num = N <= 1 ? [nothing for _ in range] : string.(range; base=N)
     len = length_bijective.(range, N)
+    @test num_to_bijective.(range, N, f) == num_to_bijective(N, f).(range) # Curly化支持
     arr = num_to_bijective.(range, N, f) .|> Vector{Int}
+    @test bijective_to_num.(arr, N, f⁻¹) == bijective_to_num(N, f⁻¹).(arr) # Curly化支持
     arr_B = num_to_bijective_BRUTE.(range, N, f) .|> Vector{Int}
     arr_r = bijective_to_num.(arr, N, f⁻¹)
     # 可选地启用DF进行展示
@@ -170,6 +203,28 @@ let test(N = 2, NUM = 16) = begin
 end
 test.([1, 2, 3, 4])
 end
+# 大数测试
+let k = '\u4e00':'\u9fff' |> collect
+    N = length(k) # 这里不指定大整数
+    f = i -> Char(i + 0x4e00 - 1) # 要把「一」当1
+    f⁻¹ = char -> char - '\u4e00' + 1 # 要把「一」当1
+    @test k .|> f⁻¹ .|> f == k # 测试映射无损
+    @test 0x4e00:0x9fff .|> f .|> f⁻¹ == 0x4e00:0x9fff
+    
+    # 大数测试1
+    let num = big(10)^100 # 指定是大整数
+        num_bij = num_to_bijective(num, N, f)
+        @test bijective_to_num(num_bij, N, f⁻¹, BigInt#= 指定要转换成大整数 =#) == num # 二轮转换后相等
+        @info "大数测试1成功！" num join(num_bij)
+    end
+    # 大数测试2
+    let num_bij = "我是一个字符串" |> collect # 一个字符串序列，转换后是大整数
+        num = bijective_to_num(num_bij, N, f⁻¹, BigInt) # 指定要转换成大整数
+        @test num_to_bijective(num, N, f) == num_bij # 二轮转换后相等
+        @info "大数测试2成功！" num join(num_bij)
+    end
+end
+df
 
 # * 一些工具函数
 
@@ -209,17 +264,22 @@ end
 
 """
     num_to_bijective(x::I, chars::AbstractString) where {I <: Integer} -> Integer
+
 原数→双射进位制数（字符串版本）
-- 自动以「字符集大小」作为基数
-- ⚠️其中返回的数组对「索引」而言是「从高到底数」的
-    - 遵循字面呈现规则，如「双射三进制」下`101`即字符串"101"
+- @param x 原数
+- @param chars 双射进制数字符集
+    - 自动以「字符集大小」作为基数N
+- @param [I] 原数类型（可选约束）
+- @return 双射进制数符号串（字符串）
+    - ⚠️其中返回的数组对「索引」而言是「从高到底数」的
+        - 遵循字面呈现规则，如「双射三进制」下`101`即字符串"101"
     - 📌若后续需要扩展，可能需要倒序读取
 """
 function num_to_bijective(x::I, chars::AbstractString) where {I <: Integer}
     # ! 通用，无需考虑x=0的情况
 
     # 通过字串长度获得基数N
-    local N = length(chars)
+    local N::I = length(chars)
 
     # 减去1111，并得到长度 | 将「1~N」问题 转换为 「0~(N-1)」问题
     local n::I = 0
@@ -241,21 +301,39 @@ function num_to_bijective(x::I, chars::AbstractString) where {I <: Integer}
     # 返回最终结果
     return join(s)
 end
+
+"默认类型参数"
+num_to_bijective(x::Integer, chars::AbstractString, I::Type{<:Integer}) = num_to_bijective(I(x), chars)
+
+"参数Curly化支持"
+num_to_bijective(chars::AbstractString, args...) = x -> num_to_bijective(x, chars, args...)
      
 """
     bijective_to_num(s::AbstractString, chars::AbstractString)
+
 双射进制数→原数（字符串版本）
-- 自动以「字符集大小」作为基数
+- @param s 双射进制数符号串（字符串）
+- @param chars 双射进制数字符集
+    - 自动以「字符集大小」作为基数N
+- @param [I] 原数类型（可选约束）
+- @return 原数
 """
-function bijective_to_num(s::AbstractString, chars::AbstractString)
-    isempty(s) && return 0
-    local N = length(chars)
+function bijective_to_num(s::AbstractString, chars::AbstractString, ::Type{I}) where {I <: Integer}
+    local result::I = zero(I)
+    # 正常求和 | # ! 通用方法，因l=0不执行`for`故无需提前判断
+    local N::I = length(chars)
     local l = length(s)
-    return sum(
-        first_index(chars, char_at(s, l-i)) * N^i
-        for i in 0:(l-1)
-    )
+    for i in 0:(l-1)
+        result += first_index(chars, char_at(s, l-i)) * N^i
+    end
+    return result
 end
+
+"默认类型参数"
+bijective_to_num(s::AbstractString, chars::AbstractString) = bijective_to_num(s, chars, Int) # 默认为Int类型
+
+"参数Curly化支持"
+bijective_to_num(chars::AbstractString, I::Type{<:Integer}=Int) = s -> bijective_to_num(s, chars, I)
 # %ignore-below # * 测试代码
 
 # 尝试使用数据框
@@ -266,8 +344,8 @@ catch
     @warn "DataFrames包未启用！"
     false
 end
-# 正式开始
-let test(chars::AbstractString, NUM = 16) = begin
+# 基础测试
+df = let test(chars::AbstractString, NUM = 16) = begin
     N = length(chars)
     parseInt(x) = isempty(x) ? 0 : parse(Int, x)
 
@@ -280,7 +358,9 @@ let test(chars::AbstractString, NUM = 16) = begin
     num = N <= 1 ? [nothing for _ in range] : string.(range; base=N)
     len = length_bijective.(range, chars)
     arr = num_to_bijective.(range, chars)
+    @test num_to_bijective.(range, chars) == num_to_bijective(chars).(range) # Curly化支持
     arr_r = bijective_to_num.(arr, chars)
+    @test bijective_to_num.(arr, chars) == bijective_to_num(chars).(arr) # Curly化支持
     eq = arr_r .== range
     # 可选地启用DF进行展示
     df = has_DF ? DataFrame(
@@ -298,6 +378,24 @@ end
 test.(["1", "12", "123", "1234"])
 test.(["一", "一二", "一二三", "一二三四"])
 end
+# 大数测试
+let k = String('\u4e00':'\u9fff')
+    N = length(k) # 这里不指定大整数
+    
+    # 大数测试1
+    let num = big(10)^100 # 指定是大整数
+        num_bij = num_to_bijective(num, k)
+        @test bijective_to_num(num_bij, k, BigInt#= 指定要转换成大整数 =#) == num # 二轮转换后相等
+        @info "大数测试1成功！" num join(num_bij)
+    end
+    # 大数测试2
+    let num_bij = "我是一个字符串" # 一个字符串序列，转换后是大整数
+        num = bijective_to_num(num_bij, k, BigInt) # 指定要转换成大整数
+        @test num_to_bijective(num, k) == num_bij # 二轮转换后相等
+        @info "大数测试2成功！" num join(num_bij)
+    end
+end
+df
 
 #= %only-compiled
 end # module
