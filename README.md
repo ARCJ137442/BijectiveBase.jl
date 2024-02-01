@@ -1,4 +1,4 @@
-<!-- ⚠️该文件由 `BijectiveNumeration.ipynb` 自动生成于 2024-01-31T20:38:19.986，无需手动修改 -->
+<!-- ⚠️该文件由 `BijectiveNumeration.ipynb` 自动生成于 2024-02-01T11:39:22.520，无需手动修改 -->
 # BijectiveNumeration.jl
 
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-%23FE5196?logo=conventionalcommits&logoColor=white)](https://conventionalcommits.org)

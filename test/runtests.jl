@@ -1,3 +1,5 @@
+# 使用自身包
+using BijectiveNumeration
 # 【附加】使用测试代码
 using Test
 
